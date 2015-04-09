@@ -98,19 +98,24 @@ function! racer#GetCompletions()
     let res = system(cmd)
     let lines = split(res, "\\n")
     let out = []
+    let kindMap = { 'Struct': 's', 'Module': 'M', 'Function': 'f',
+		  \ 'Crate': 'C', 'Let': 'l', 'StructField': 'm',
+                  \ 'Impl': 'i', 'Enum': 'e', 'EnumVariant': 'E',
+                  \ 'Type': 't', 'FnArg': 'a', 'Trait': 'T', 'Const': 'c' }
     for line in lines
        if line =~ "^MATCH"
            let line_parts = split(line[6:], ",")
            let name = line_parts[0]
-	   let kind = ""
+	   let kind = kindMap[line_parts[4]]
            let type = ""
-	   if line_parts[4] == "StructField"
-	       let kind = "m"
-           elseif line_parts[4] == "Function"
-	       let kind = "f"
+           let word = name
+	   if kind == "f" || kind == "c"
                let type = join(line_parts[5:], ",")
+	       if g:racer_insert_paren == 1
+	           let word .= "("
+	       endif
 	   endif
-           let out = add(out, {'word': name, 'kind': kind, 'menu': type})
+           let out = add(out, {'word': word, 'abbr': name, 'kind': kind, 'menu': type})
        endif
     endfor
     call delete(tmpfname)
